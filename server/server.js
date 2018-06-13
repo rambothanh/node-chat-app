@@ -23,18 +23,17 @@ app.use(express.static(publicPath));
  	//socket.emit from Admin text Welcom to the chat app
  	socket.emit('newMessage', generateMessage('Admin', 'Welcom to the chat app'));
  	//socket.broadcast.emit from admin text New user joined
- 	socket.broadcast.emit('newMessage',generateMessage('Admin','New user joined'));
+ 	socket.broadcast.emit('newMessage', generateMessage('Admin','New user joined'));
  	
-
-
- 	//Lắng nghe sự kiện của cleint, đối số thứ 2 là đối tượng
- 	//để làm đối số của emit máy khách, là đối số thứ nhất của callback 
- 	socket.on('createMessage', (message) => {
+ 	//Listen các user gửi message
+ 	socket.on('createMessage', (message, callback) => {
+ 		//Thông báo có message được gửi từ client trên server
      	console.log('createMessage', message);
-     	//Gửi tin nhắn đến tất cả client đang kết nối, ngay cả 
-     	//client gửi tin nhắn
+     	
+     	//Gửi message nhận được đến tất cả các connected client 
      	io.emit('newMessage', generateMessage(message.from, message.text));
-     	// 
+     	//gửi đối số thứ 3 (function) đến user vừa tạo message
+     	callback('This is from the server');
      	// gửi tin nhắn nhận được đến tất cả các connected, trừ người gửi tin nhắn
      	// socket.broadcast.emit('newMessage', {
      	// 	from: message.from,
