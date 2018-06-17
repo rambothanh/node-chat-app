@@ -34,7 +34,7 @@ app.use(express.static(publicPath));
      	//Gửi message nhận được đến tất cả các connected client 
      	io.emit('newMessage', generateMessage(message.from, message.text));
      	//gửi đối số thứ 3 (function) đến user vừa tạo message
-     	callback('This is from the server');
+     	callback();
      
      });
 

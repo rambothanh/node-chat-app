@@ -41,14 +41,17 @@ jQuery('#message-form').on('submit', function(e) {
     //preventDefault() ngăn cản brower thực hiện
     //hành động mặc định
     e.preventDefault();
+
+    var messageTextbox = jQuery('[name=message]');
     //.val(): Lấy giá trị hiện tại của thành phần, hoặc thay đổi giá trị cho thành phần.
     // .val() sẽ lấy giá trị đầu tiên nếu thành phần chọn là một danh sách.
     // Lưu ý: [name=message] tất cả đề nằm trong ngoặc nháy
     socket.emit('createMessage', {
     	from: 'User',
-    	text: jQuery('[name=message]').val()
+    	text: messageTextbox.val()
     }, function() {
-
+    	//Khi gửi textbox đến server xong thì cho ô textbox rỗng
+    	messageTextbox.val('');
     });
 });
 
@@ -63,14 +66,26 @@ locationButton.on('click', function() {
 		return alert('Geolocation not support by your brower')
 	};
 
+	//Khi nút gửi location được click thì nó cần 3-4 giây mới gửi được
+	//location, vậy nên trong thời gian 3-4 giây đó, vô hiệu hóa nút 
+	//đó luôn để tránh spam, và cũng thay đổi text của button đó 
+	locationButton.attr('disabled', 'disabled').text('Sending location...');
+
 	//Lấy tọa độ của user click vào button
 	navigator.geolocation.getCurrentPosition(function(location) {
+
+		//Khi lấy tọa độ thành công thì enable nút gửi location lại
+		//và trả về text ban đầu của button
+		locationButton.removeAttr('disabled').text('Send Location');
 		//Gửi Position của user đến server
 		socket.emit('createLocationMessage', {
 			latitude: location.coords.latitude,
 			longitude: location.coords.longitude
 		});
 	}, function(err) {
+		//khi nút gửi không thành công thì cũng enable nút gửi location lại
+		//và trả về text ban đầu của button
+		locationButton.removeAttr('disabled').text('Send Location');
 		alert('Unable to fetch location.');
 	})
 
