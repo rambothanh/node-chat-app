@@ -21,14 +21,18 @@ function scrollToBottom() {
     //Chiều cao của message kế bên message mới vừa gửi
     var lastMessageHeight = newMessage.prev().innerHeight();
 
-    //Nếu vị trí scroll nằm đang nằm ở trên quá cao (cao đến nỗi
+    //Nếu vị trí scroll đang nằm ở trên quá cao (cao đến nỗi
     //ẩn nhiều hơn từ 2 messages cuối cùng trở lên) thì tức là người
     //dùng đang xem lại tin cũ, không nên tự động scroll màn hình 
     //message của người dùng.
     //Nếu vị trí scroll chỉ ẩn 1 messages mới nhất, thì khi có thêm
     //1 message mới, sẽ tự động scroll đến cuối để người dùng đọc tin
     //nhắn mới
-    if (clientHeight + scrollTop + newMessageHeight + lastMessageHeight>= scrollHeight) {
+    if (clientHeight + scrollTop + newMessageHeight + lastMessageHeight >= scrollHeight) {
+        //.scrollTop(value): Lấy vị trí hiện tại  theo chiều dọc của thanh 
+        //cuộn cho các thành phần đầu tiên trong một bộ các thành phần 
+        //phù hợp hoặc thiết lập vị trí dọc của thanh cuộn cho mỗi thành 
+        //phần phù hợp
         messages.scrollTop(scrollHeight);
     };
 };
@@ -36,18 +40,36 @@ function scrollToBottom() {
 
 //Tạo sự kiện ở máy khách
 socket.on('connect', function() {
-    console.log('connected to server');
-
-    // socket.emit('createMessage',{
-    // 	from: 'TrongThanh',
-    // 	text: 'Nguyen Trong Thanh'
-    // });
+	console.log('connected to server');
+	var params = jQuery.deparam(window.location.search);
+	socket.emit('join', params, function(err) {
+		if (err) {
+			alert(err);
+			//Nếu lỗi (không điền name hoặc không điền room) 
+			//thì chuyển hướng người dùng về trang gốc
+			window.location.href = '/';
+		}else {
+			console.log('no err');
+		}
+	})
 });
 
 socket.on('disconnect', function() {
     console.log('Disconnected from server');
 
 });
+
+//Cập nhật danh sách người tham gia room chat
+//kho có người join hoặc ngắt kết nối
+socket.on('updateUserList',function(users) {
+    var ol = jQuery('<ol></ol>');
+
+    users.forEach(function(user) {
+        ol.append(jQuery('<li></li>').text(user));
+    });
+
+    jQuery('#users').html(ol);
+})
 
 socket.on('newMessage', function(message) {
     var formattedTime = moment(message.createAt).format('h:mm a');
