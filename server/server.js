@@ -49,11 +49,16 @@ app.use(express.static(publicPath));
 
  	//Listen các user tạo và gửi message
  	socket.on('createMessage', (message, callback) => {
- 		//Thông báo có message được gửi từ client trên server
-     	console.log('createMessage', message);
+ 		//Lấy id của client vừa gửi message, và tìm user có id đó
+          var user = users.getUser(socket.id);         
+
+          //Nếu user tồn tại và message gửi đi khác rỗng
+          if (user && isRealString(message.text)) {
+               //Gửi message nhận được đến tất cả các connected client 
+               io.to(user.room).emit('newMessage', generateMessage(user.name, message.text));  
+          } ;
+
      	
-     	//Gửi message nhận được đến tất cả các connected client 
-     	io.emit('newMessage', generateMessage(message.from, message.text));
      	//gửi đối số thứ 3 (function) đến user vừa tạo message
      	callback();
      
@@ -61,7 +66,12 @@ app.use(express.static(publicPath));
 
  	//Gửi tọa độ của User vửa gửi createLocationMessage đến tất cả connected client
  	socket.on('createLocationMessage',(coords) => {
- 		io.emit('newLocationMessage', generateLocationMessage('Admin', coords.latitude, coords.longitude))
+          //Lấy id của client vừa gửi message, và tìm user có id đó
+          var user = users.getUser(socket.id);
+          if(user) {
+              io.to(user.room).emit('newLocationMessage', generateLocationMessage(user.name, coords.latitude, coords.longitude)) 
+          }
+ 		
  	});
 
  	//Khi có client close browser (disconected)
